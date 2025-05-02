@@ -1,0 +1,192 @@
+# Installing BioGeoBEARS
+
+  #SIMPLE BIOGEOBEARS SETUP
+# From October 2018 onwards, install BioGeoBEARS from GitHub:
+# https://github.com/nmatzke/BioGeoBEARS
+#Library----------
+library(snow)
+library(phylobase)
+library(devtools)
+library(optimx)
+library(phytools)
+library(tidyverse)
+library(readr)
+library('TreeTools')
+library(diversitree)
+library(ape)
+library(plotrix)
+library(ggplot2)
+library(ggforce)
+library(BioGeoBEARS)
+library(phangorn)
+
+# SETUP: YOUR TREE FILE AND GEOGRAPHY FILE
+setwd("C:/Users/jalle/Documents/College/University of Louisiana/PhD Research project/Manuscripts/Chapter 3_4_Biogeography_&_Ecology/BioGeoBears/Models/for manuscript/LEM1_bioregion_apteronotidae")
+#Tree file----------------
+trfn <- "Apteronotidae_phylogeny.newick"
+tr <- read.tree(trfn)
+plot(tr, type = "phylogram", edge.color = "black", edge.width = 2, 
+     tip.color = "black", cex = 1)
+
+tr[["tip.label"]]
+
+taxa_to_remove = c("Apteronotus_cuchillo")
+
+
+
+trimmed_tree = drop.tip(tr, taxa_to_remove)
+
+plot(tr)
+plot(trimmed_tree, type = "phylogram", edge.color = "black", edge.width = 2, 
+     tip.color = "black", cex = 1)
+
+ape::write.tree(trimmed_tree, file='Apteronotidae_phylogeny.txt')
+
+#Geog_file------------------
+geogfn <- "Apteronotidae_range_biogeobears.txt"
+geog <- getranges_from_LagrangePHYLIP(geogfn)
+geog
+
+# Default DEC--------------------------------
+
+max_range_size = 7
+# Initialize the BioGeoBEARS run object
+BioGeoBEARS_run_object <- define_BioGeoBEARS_run()
+
+# Set the tree and geographical data
+BioGeoBEARS_run_object$trfn <- trfn
+BioGeoBEARS_run_object$geogfn <- geogfn
+
+# Set the maximum number of areas
+states_list = areas_list_to_states_list_new(areas = c("T","G","B","L","O","W","N"))
+states_list
+length(states_list)
+
+BioGeoBEARS_run_object$max_range_size <- max_range_size
+
+# Set the number of geographical areas
+              #BioGeoBEARS_run_object$num_areas <- length(unique(unlist(geog$areanames)))
+# Load the adjacency matrix
+adj_matrix_fn <- "SS_matrix.txt"
+adj_matrix <- as.matrix(read.table(adj_matrix_fn))
+BioGeoBEARS_run_object$list_of_dispersal_matrices_fn <- adj_matrix_fn
+
+# Set other model options (default settings for a DEC model)
+BioGeoBEARS_run_object$min_branchlength = 0.000000000000000000000000000000000000000000000000000000000000001
+BioGeoBEARS_run_object$include_null_range = TRUE
+BioGeoBEARS_run_object$speedup = TRUE
+BioGeoBEARS_run_object$use_optimx = TRUE
+BioGeoBEARS_run_object$num_cores_to_use = 8
+BioGeoBEARS_run_object$force_sparse = FALSE
+BioGeoBEARS_run_object$return_condlikes_table = TRUE
+BioGeoBEARS_run_object$calc_TTL_loglike_from_condlikes_table = TRUE
+BioGeoBEARS_run_object$calc_ancprobs = TRUE
+BioGeoBEARS_run_object
+check_BioGeoBEARS_run(BioGeoBEARS_run_object)
+
+# Run the DEC model with the adjacency matrix (stepping stone model)
+res <- bears_optim_run(BioGeoBEARS_run_object)
+
+# Save the resulting object to an R data file
+save(res, file = "LEM1a.RData")
+
+# Alternatively, save to an RDS file (which preserves object structure and can be loaded back exactly)
+saveRDS(res, file = "LEM1a.rds")
+
+#Visualize results
+# Extract the inferred ancestral states
+res_states <- res$ML_marginal_prob_each_state_at_branch_top_AT_node
+
+# Plot the results
+region_list= c("N","T","G","B","L","O","W")
+color_list= c("gray","dodgerblue3","yellow","orange","red","deepskyblue","forestgreen", "grey", rep("gray28", times=120))
+region_color_list= c("gray","dodgerblue3","yellow","orange","red","deepskyblue","forestgreen")
+
+plot_BioGeoBEARS_results(results_object = res, 
+                         analysis_titletxt = "DEC Ancestral Range Reconstruction", 
+                         addl_params = list("j" = 0),
+                         plotwhat = "pie",   # Plot pie charts
+                         label.offset = 0.3, # Adjust label offset as needed - moves species names closer to tree
+                         tipcex = 0.4,       # Adjust tip label size
+                         statecex = 0.3,     # Adjust middle pie between nodes
+                         splitcex = 0.5,     # Adjust pie size
+                         pie_tip_statecex = 0.01, #Adjusts the size of boxes at terminal end
+                         titlecex = 0.8,     # Adjust title size
+                         plotsplits = T,  # Plot splits
+                         plotlegend = F,  # Include legend
+                         colors_list_for_states = color_list, 
+                         colors_legend(region_list, region_color_list))
+#tip.cex sizes the font size
+#state.cex sizes the pie charts at nodes
+#split.cex sizes the pies at end of branch
+
+
+#TwoTimeSlice Model 10 Ma ----------------------
+
+dispersal_multipliers_fn = np("2TS_matrix_likeNavajinione.txt")
+read_dispersal_multipliers_fn(inputs = NULL, dispersal_multipliers_fn = dispersal_multipliers_fn)
+tipranges = getranges_from_LagrangePHYLIP(lgdata_fn=geogfn)
+
+max_range_size = 7
+
+BioGeoBEARS_run_object = define_BioGeoBEARS_run()
+BioGeoBEARS_run_object$trfn = trfn
+BioGeoBEARS_run_object$geogfn = geogfn
+BioGeoBEARS_run_object$max_range_size = max_range_size
+BioGeoBEARS_run_object$min_branchlength = 0.000001 
+BioGeoBEARS_run_object$timesfn = "2_periods.txt"
+BioGeoBEARS_run_object$dispersal_multipliers_fn = dispersal_multipliers_fn
+BioGeoBEARS_run_object$include_null_range = TRUE
+BioGeoBEARS_run_object$on_NaN_error = -1e50
+BioGeoBEARS_run_object$speedup = TRUE
+BioGeoBEARS_run_object$use_optimx = "GenSA"
+BioGeoBEARS_run_object$num_cores_to_use = 8
+BioGeoBEARS_run_object$force_sparse = FALSE
+BioGeoBEARS_run_object = readfiles_BioGeoBEARS_run(BioGeoBEARS_run_object)
+BioGeoBEARS_run_object$return_condlikes_table = TRUE
+BioGeoBEARS_run_object$calc_TTL_loglike_from_condlikes_table = TRUE
+BioGeoBEARS_run_object$calc_ancprobs = TRUE
+BioGeoBEARS_run_object = section_the_tree(inputs=BioGeoBEARS_run_object, make_master_table=TRUE, plot_pieces=FALSE)
+BioGeoBEARS_run_object
+BioGeoBEARS_run_object$BioGeoBEARS_model_object
+BioGeoBEARS_run_object$BioGeoBEARS_model_object@params_table
+check_BioGeoBEARS_run(BioGeoBEARS_run_object)
+LEM1b = bears_optim_run(BioGeoBEARS_run_object)
+
+# Extract the inferred ancestral states
+LEM1bstates <- LEM1b$ML_marginal_prob_each_state_at_branch_top_AT_node
+
+analysis_titletxt = "DEC_2T"
+
+DECresults_object = LEM1b
+
+# Save the resulting object to an R data file
+save(LEM1b, file = "LEM1b.RData")
+
+# Alternatively, save to an RDS file (which preserves object structure and can be loaded back exactly)
+saveRDS(LEM1b, file = "LEM1b.rds")
+
+
+#coloring-----------------this is skewed since the gray 50 is what looks like negro
+
+region_list= c("N","T","G","B","L","O","W")
+color_list= c("gray","dodgerblue3","yellow","orange","red","deepskyblue","forestgreen","gray", rep("gray35", times=120))
+region_color_list= c("gray","dodgerblue3","yellow","orange","red","deepskyblue","forestgreen")
+#tip.cex sizes the font size
+#state.cex sizes the pie charts at nodes
+#split.cex sizes the pies at end of branch
+
+plot_BioGeoBEARS_results(results_object = LEM1b, 
+                         analysis_titletxt = "DEC Ancestral Range Reconstruction", 
+                         addl_params = list("j" = 0),
+                         plotwhat = "pie",   # Plot pie charts
+                         label.offset = 0.3, # Adjust label offset as needed - moves species names closer to tree
+                         tipcex = 0.4,       # Adjust tip label size
+                         statecex = 0.3,     # Adjust middle pie between nodes
+                         splitcex = 0.5,     # Adjust pie size
+                         pie_tip_statecex = 0.01, #Adjusts the size of boxes at terminal end
+                         titlecex = 0.8,     # Adjust title size
+                         plotsplits = T,  # Plot splits
+                         plotlegend = F,  # Include legend
+                         colors_list_for_states = color_list, 
+                         colors_legend(region_list, region_color_list))
