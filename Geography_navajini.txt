@@ -1,0 +1,28 @@
+26 6 (G B L O W N)
+Compsaraia_compsa 000100
+Compsaraia_samueli 110011
+Compsaraia_iara 100011
+Pariosternarchus_amazonensis 000011
+Sternarchella_duccis 000011
+Sternarchella_schotti 100011
+Sternarchella_orthos 110111
+Sternarchella_calhamazon 110011
+Sternarchella_rex 000011
+Sternarchella_patriciae 000010
+Sternarchella_sima 110000
+Sternarchella_orinoco 000100
+Sternarchella_raptor 100011
+Porotergus_gimbeli 010011
+Porotergus_duende 100010
+Porotergus_gymnotus 100000
+Porotergus_paranaensis 010000
+Porotergus_macrolepis 000001
+Porotergus_apurensis 000100
+Porotergus_bonapartii 110011
+Melanosternarchus_amaru 100011
+Sternarchogiton_nattereri 110011
+Sternarchogiton_labiatus 100111
+Sternarchogiton_porcinum 000111
+Sternarchogiton_zuanoni 010000
+Tenebrosternarchus_preto 110011
+
