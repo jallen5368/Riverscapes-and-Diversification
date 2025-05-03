@@ -6,7 +6,7 @@ This repository contains the datasets and model files used in our study of the e
 
 ### 1. `data/`
 - `Apteronotid_distribution_dataset_SO1_10.csv`: Occurrence dataset for apteronotid species across South American by Strahler Stream Order (SO)
-- `River_data_collection.csv`: River metrics by stream order for each major river basin at Hybas_lev_5. Data extracted from HydroSHEDS. Species diversity metrics based on distribution dataset.
+- `River_data_collection.xlsx`: River metrics by stream order for each major river basin at Hybas_lev_5. Data extracted from HydroSHEDS. Species diversity metrics based on distribution dataset.
 
 ### 2. `phylogeny/`
 - `Apteronotidae_phylogeny.newick`: Time-calibrated species-level phylogeny in Newick format.
